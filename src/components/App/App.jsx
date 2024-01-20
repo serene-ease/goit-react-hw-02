@@ -1,47 +1,69 @@
-import { useState } from 'react';
-// import { Options } from '../Options/Options';
+import { useState, useEffect } from 'react';
+// import useEffect from 'react';
+// Как импортировать дефолтно компоненнты реакт?
+import Description from '../Description/Description';
+import Options from '../Options/Options';
+import Feedback from '../Feedback/Feedback';
+import Notification from '../Notification/Notification';
+import css from './App.module.css';
 
-export const App = () => {
-  const [feedback, setFeedback] = useState({
-    good: 0,
-    netural: 0,
-    bad: 0,
-  });
+export default function App() {
+  const [values, setValues] = useState(getInitFeedback);
+  const [clicks, setClicks] = useState(getInitCliksCount);
+  const isHidden = clicks === 0;
+  const totalFeedback = values.good + values.neutral + values.bad;
+  const positiveFeedback = Math.round(((values.good + values.neutral) / totalFeedback) * 100);
 
-////////////////////////////////
-const handleFeedback = feedback => {
-  setFeedback({ ...feedback, feedType: feedback.feedType + 1 });
-};
+  useEffect(() => {
+    window.localStorage.setItem('initial-feedback', JSON.stringify(values));
+    window.localStorage.setItem('initial-clicks-count', JSON.stringify(clicks));
+  }, [values, clicks]);
+  return (
+    <div className={css.container}>
+      <Description />
+      <Options onUpdate={onLeaveFeedback} isHidden={isHidden} onReset={onReset} />
+      {isHidden ? (
+        <Notification />
+      ) : (
+        <Feedback
+          values={values}
+          totalFeedback={totalFeedback}
+          positiveFeedback={positiveFeedback}
+        />
+      )}
+    </div>
+  );
 
-const handleFeedButtons = (type) => {setFeedback(type)}
+  function onLeaveFeedback(type) {
+    setValues({
+      ...values,
+      [type]: values[type] + 1,
+    });
 
-//////////////////////////////
-// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-const onGood = () => {
-  setFeedback(good);
-};
+    setClicks(clicks + 1);
+  }
 
-const onNeutral = () => {
-  setFeedback(neutral);
-};
+  function onReset() {
+    setValues({ ...values, good: 0, neutral: 0, bad: 0 });
+    setClicks(0);
+  }
 
-const onBad = () => {
-  setFeedback(bad);
-};
-////////////////////////////////
+  function getInitFeedback() {
+    const initFeedback = window.localStorage.getItem('initial-feedback');
+    if (initFeedback !== null) {
+      return JSON.parse(initFeedback);
+    }
+    return 0;
+  }
 
+  function getInitCliksCount() {
+    const initClicksCount = window.localStorage.getItem('initial-clicks-count');
+    if (initClicksCount !== null) {
+      return JSON.parse(initClicksCount);
+    }
 
-const Options = ({ onGood, onNeutral, onBad }) => {
-  <div>
-    <button onClick={onGood}>Good</button>
-    <button onClick={onNeutral}>Neutral</button>
-    <button onClick={onBad}>Bad</button>
-  </div>;
-};
+    return { good: 0, neutral: 0, bad: 0 };
+  }
 
-return (<h1>Sip Happens Café</h1>
-<p>Please leave your feedback about our service by selecting one of the options below.</p>
-<p></p>
-<p></p>
-<p></p>);
-};
+  /////////////App end//////////////
+}
