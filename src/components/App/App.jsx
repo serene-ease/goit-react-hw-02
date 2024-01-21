@@ -10,14 +10,15 @@ import css from './App.module.css';
 export default function App() {
   const [values, setValues] = useState(getInitFeedback);
   const [clicks, setClicks] = useState(getInitCliksCount);
-  const isHidden = clicks === 0;
   const totalFeedback = values.good + values.neutral + values.bad;
   const positiveFeedback = Math.round(((values.good + values.neutral) / totalFeedback) * 100);
+  const isHidden = clicks === 0;
 
   useEffect(() => {
     window.localStorage.setItem('initial-feedback', JSON.stringify(values));
     window.localStorage.setItem('initial-clicks-count', JSON.stringify(clicks));
   }, [values, clicks]);
+
   return (
     <div className={css.container}>
       <Description />
@@ -25,11 +26,7 @@ export default function App() {
       {isHidden ? (
         <Notification />
       ) : (
-        <Feedback
-          values={values}
-          totalFeedback={totalFeedback}
-          positiveFeedback={positiveFeedback}
-        />
+        <Feedback values={values} totalFeedback={totalFeedback} positiveFeedback={positiveFeedback} />
       )}
     </div>
   );
@@ -53,7 +50,7 @@ export default function App() {
     if (initFeedback !== null) {
       return JSON.parse(initFeedback);
     }
-    return 0;
+    return { good: 0, neutral: 0, bad: 0 };
   }
 
   function getInitCliksCount() {
@@ -61,8 +58,7 @@ export default function App() {
     if (initClicksCount !== null) {
       return JSON.parse(initClicksCount);
     }
-
-    return { good: 0, neutral: 0, bad: 0 };
+    return 0;
   }
 
   /////////////App end//////////////
